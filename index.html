@@ -7,105 +7,64 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div class="wrap">
-    <div class="panel">
-      <button class="menuBtn" id="menuBtn" aria-label="Menu">
-        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  <div class="app">
+    <button class="burger" id="burger" aria-label="Menu">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16"/>
+      </svg>
+    </button>
+
+    <div class="mark">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3 20 7.5v9L12 21 4 16.5v-9L12 3Z"/>
+        <path d="M12 8v4l3 2"/>
+      </svg>
+    </div>
+
+    <nav class="menu" id="menu">
+      <button class="menuItem" id="openAdmin" hidden>
+        <span>
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 21a8 8 0 0 1 16 0"/>
+          </svg>
+        </span>
+        Administration
+        <b>›</b>
       </button>
 
-      <div class="logoMark">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2.8 20 7.4v9.2l-8 4.6-8-4.6V7.4L12 2.8Z"/>
-          <path d="M12 7v5l4 2"/>
-        </svg>
+      <button class="menuItem" id="openMain">
+        <span>
+          <svg viewBox="0 0 24 24">
+            <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9L12 3Z"/>
+          </svg>
+        </span>
+        Main
+        <b>›</b>
+      </button>
+    </nav>
+
+    <section class="page show" id="main">
+      <h1>Main</h1>
+
+      <div class="codeScreen" id="codeScreen">
+        <div class="codeInput">
+          <input maxlength="1" inputmode="numeric" autocomplete="off">
+          <input maxlength="1" inputmode="numeric" autocomplete="off">
+          <input maxlength="1" inputmode="numeric" autocomplete="off">
+          <input maxlength="1" inputmode="numeric" autocomplete="off">
+          <input maxlength="1" inputmode="numeric" autocomplete="off">
+          <input maxlength="1" inputmode="numeric" autocomplete="off">
+        </div>
       </div>
 
-      <div class="popup" id="popup">
-        <button class="popItem" id="goAdmin" hidden>
-          <span class="ico">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 21a8 8 0 0 1 16 0"/>
-            </svg>
-          </span>
-          <span>Administration</span>
-          <span class="arr">›</span>
-        </button>
-
-        <button class="popItem" id="goMain">
-          <span class="ico">
-            <svg viewBox="0 0 24 24">
-              <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9L12 3Z"/>
-            </svg>
-          </span>
-          <span>Main</span>
-          <span class="arr">›</span>
-        </button>
-      </div>
-
-      <section class="page active" id="mainPage">
-        <h1>Main</h1>
-
-        <div class="codePage" id="codePage">
-          <div class="codeInput">
-            <input maxlength="1" inputmode="numeric">
-            <input maxlength="1" inputmode="numeric">
-            <input maxlength="1" inputmode="numeric">
-            <input maxlength="1" inputmode="numeric">
-            <input maxlength="1" inputmode="numeric">
-            <input maxlength="1" inputmode="numeric">
-          </div>
+      <div class="scriptScreen" id="scriptScreen" hidden>
+        <div class="scriptBox">
+          <pre><code id="scriptOut">Script here</code></pre>
         </div>
 
-        <div class="scriptPage" id="scriptPage" hidden>
-          <div class="scriptBox">
-            <pre><code id="out">Script here</code></pre>
-          </div>
-
-          <div class="dock smallDock">
-            <button id="download" aria-label="Download">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v12"/>
-                <path d="m7 10 5 5 5-5"/>
-                <path d="M5 21h14"/>
-              </svg>
-            </button>
-
-            <button id="copy" aria-label="Copy">
-              <svg viewBox="0 0 24 24">
-                <rect x="8" y="8" width="11" height="11" rx="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="msg" id="msg"></div>
-      </section>
-
-      <section class="page" id="adminPage">
-        <h1>Administraion</h1>
-
-        <textarea id="lua" placeholder="Script here"></textarea>
-
-        <div class="dock">
-          <button id="focusEdit" aria-label="Edit">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 20h4L19 9l-4-4L4 16v4Z"/>
-              <path d="m14 6 4 4"/>
-            </svg>
-          </button>
-
-          <button id="clear" aria-label="Delete">
-            <svg viewBox="0 0 24 24">
-              <path d="M3 6h18"/>
-              <path d="M8 6V4h8v2"/>
-              <path d="M6 6v15h12V6"/>
-              <path d="M10 11v6M14 11v6"/>
-            </svg>
-          </button>
-
-          <button id="adminDownload" aria-label="Download">
+        <div class="dock dockSmall">
+          <button id="downloadScript" aria-label="Download">
             <svg viewBox="0 0 24 24">
               <path d="M12 3v12"/>
               <path d="m7 10 5 5 5-5"/>
@@ -113,17 +72,58 @@
             </svg>
           </button>
 
-          <button id="create" aria-label="Create">
+          <button id="copyScript" aria-label="Copy">
             <svg viewBox="0 0 24 24">
-              <path d="M4 4 21 12 4 20l3-8-3-8Z"/>
-              <path d="M7 12h14"/>
+              <rect x="8" y="8" width="11" height="11" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/>
             </svg>
           </button>
         </div>
+      </div>
 
-        <div class="msg" id="newcode"></div>
-      </section>
-    </div>
+      <div class="status" id="status"></div>
+    </section>
+
+    <section class="page" id="admin">
+      <h1>Administraion</h1>
+
+      <textarea id="luaInput" placeholder="Script here"></textarea>
+
+      <div class="dock">
+        <button id="editLua" aria-label="Edit">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 20h4L19 9l-4-4L4 16v4Z"/>
+            <path d="m14 6 4 4"/>
+          </svg>
+        </button>
+
+        <button id="clearLua" aria-label="Clear">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4h8v2"/>
+            <path d="M6 6v15h12V6"/>
+            <path d="M10 11v6M14 11v6"/>
+          </svg>
+        </button>
+
+        <button id="downloadLua" aria-label="Download">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v12"/>
+            <path d="m7 10 5 5 5-5"/>
+            <path d="M5 21h14"/>
+          </svg>
+        </button>
+
+        <button id="createScript" aria-label="Create">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 4 21 12 4 20l3-8-3-8Z"/>
+            <path d="M7 12h14"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="status" id="adminStatus"></div>
+    </section>
   </div>
 
   <script src="/app.js"></script>
