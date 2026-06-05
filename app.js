@@ -1,24 +1,28 @@
 const q = s => document.querySelector(s)
 const qa = s => [...document.querySelectorAll(s)]
 
-const inputs = qa(".codeInput input")
-const get = q("#get")
-const msg = q("#msg")
-const out = q("#out")
-const copy = q("#copy")
-const download = q("#download")
-const hamb = q("#hamb")
-const side = q("#side")
-const navs = qa(".nav")
+const menuBtn = q("#menuBtn")
+const popup = q("#popup")
+const goMain = q("#goMain")
+const goAdmin = q("#goAdmin")
 const mainPage = q("#mainPage")
 const adminPage = q("#adminPage")
-const adminNav = q("#adminNav")
+const inputs = qa(".codeInput input")
+const codePage = q("#codePage")
+const scriptPage = q("#scriptPage")
+const out = q("#out")
+const msg = q("#msg")
+const copy = q("#copy")
+const download = q("#download")
 const lua = q("#lua")
-const create = q("#create")
+const focusEdit = q("#focusEdit")
 const clear = q("#clear")
+const adminDownload = q("#adminDownload")
+const create = q("#create")
 const newcode = q("#newcode")
 
 let currentScript = ""
+let busy = false
 
 async function api(url, opt) {
   const res = await fetch(url, opt)
@@ -27,52 +31,52 @@ async function api(url, opt) {
   return data
 }
 
-function getCode() {
-  return inputs.map(i => i.value).join("")
-}
-
-function setPage(page) {
-  navs.forEach(n => n.classList.toggle("active", n.dataset.page === page))
-  mainPage.classList.toggle("active", page === "main")
-  adminPage.classList.toggle("active", page === "admin")
-  side.classList.remove("open")
+function page(name) {
+  mainPage.classList.toggle("active", name === "main")
+  adminPage.classList.toggle("active", name === "admin")
+  popup.classList.remove("open")
 }
 
 function showAdmin() {
-  adminNav.hidden = false
+  goAdmin.hidden = false
 }
 
-inputs.forEach((inp, i) => {
-  inp.addEventListener("input", e => {
-    inp.value = inp.value.replace(/\D/g, "").slice(0, 1)
-    if (inp.value && inputs[i + 1]) inputs[i + 1].focus()
-  })
+function code() {
+  return inputs.map(x => x.value).join("")
+}
 
-  inp.addEventListener("keydown", e => {
-    if (e.key === "Backspace" && !inp.value && inputs[i - 1]) inputs[i - 1].focus()
-  })
+function resetCode() {
+  inputs.forEach(x => x.value = "")
+  inputs[0].focus()
+}
 
-  inp.addEventListener("paste", e => {
-    e.preventDefault()
-    const val = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
-    inputs.forEach((x, n) => x.value = val[n] || "")
-    if (inputs[val.length - 1]) inputs[val.length - 1].focus()
-  })
-})
+function showScript(script) {
+  currentScript = script
+  out.textContent = script
+  codePage.hidden = true
+  scriptPage.hidden = false
+}
 
-navs.forEach(n => n.onclick = () => setPage(n.dataset.page))
+function saveFile(text, name) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" })
+  const a = document.createElement("a")
+  a.href = URL.createObjectURL(blob)
+  a.download = name
+  document.body.append(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(a.href)
+}
 
-hamb.onclick = () => side.classList.toggle("open")
+async function submitCode() {
+  if (busy) return
 
-get.onclick = async () => {
-  const val = getCode()
+  const val = code()
 
+  if (!/^\d{6}$/.test(val)) return
+
+  busy = true
   msg.textContent = ""
-
-  if (!/^\d{6}$/.test(val)) {
-    msg.textContent = "Введите 6 цифр"
-    return
-  }
 
   try {
     if (val === "607125") {
@@ -84,51 +88,129 @@ get.onclick = async () => {
 
       if (data.admin) {
         showAdmin()
-        setPage("admin")
-        msg.textContent = "Админ доступ открыт"
+        page("admin")
+        msg.textContent = ""
       }
 
+      resetCode()
       return
     }
 
     const data = await api(`/api/script/${val}`)
-    currentScript = data.script
-    out.textContent = data.script
-    msg.textContent = "Скрипт найден"
+    showScript(data.script)
   } catch (e) {
     msg.textContent = e.message
+    resetCode()
+  } finally {
+    busy = false
   }
 }
 
+menuBtn.onclick = () => popup.classList.toggle("open")
+
+goMain.onclick = () => {
+  page("main")
+}
+
+goAdmin.onclick = () => {
+  page("admin")
+}
+
+document.addEventListener("click", e => {
+  if (!popup.contains(e.target) && !menuBtn.contains(e.target)) {
+    popup.classList.remove("open")
+  }
+})
+
+inputs.forEach((inp, i) => {
+  inp.addEventListener("input", () => {
+    inp.value = inp.value.replace(/\D/g, "").slice(0, 1)
+
+    if (inp.value && inputs[i + 1]) {
+      inputs[i + 1].focus()
+    }
+
+    if (code().length === 6) {
+      submitCode()
+    }
+  })
+
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Backspace" && !inp.value && inputs[i - 1]) {
+      inputs[i - 1].focus()
+    }
+
+    if (e.key === "Enter") {
+      submitCode()
+    }
+  })
+
+  inp.addEventListener("paste", e => {
+    e.preventDefault()
+
+    const val = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
+
+    inputs.forEach((x, n) => {
+      x.value = val[n] || ""
+    })
+
+    if (val.length === 6) {
+      submitCode()
+    } else if (inputs[val.length]) {
+      inputs[val.length].focus()
+    }
+  })
+})
+
 copy.onclick = async () => {
-  if (!currentScript) return msg.textContent = "Сначала получите скрипт"
+  if (!currentScript) {
+    msg.textContent = "Скрипт не открыт"
+    return
+  }
+
   await navigator.clipboard.writeText(currentScript)
   msg.textContent = "Скопировано"
 }
 
 download.onclick = () => {
-  if (!currentScript) return msg.textContent = "Сначала получите скрипт"
+  if (!currentScript) {
+    msg.textContent = "Скрипт не открыт"
+    return
+  }
 
-  const blob = new Blob([currentScript], { type: "text/plain" })
-  const a = document.createElement("a")
-  a.href = URL.createObjectURL(blob)
-  a.download = "script.lua"
-  a.click()
-  URL.revokeObjectURL(a.href)
+  saveFile(currentScript, "script.lua")
+}
+
+focusEdit.onclick = () => {
+  lua.focus()
 }
 
 clear.onclick = () => {
   lua.value = ""
   newcode.textContent = ""
+  lua.focus()
+}
+
+adminDownload.onclick = () => {
+  const script = lua.value.trim()
+
+  if (!script) {
+    newcode.textContent = "Script пустой"
+    return
+  }
+
+  saveFile(script, "script.lua")
 }
 
 create.onclick = async () => {
   const script = lua.value.trim()
 
   if (!script) {
-    newcode.textContent = "Вставьте скрипт"
+    newcode.textContent = "Script пустой"
     return
   }
+
+  newcode.textContent = ""
 
   try {
     const data = await api("/api/scripts", {
@@ -137,7 +219,7 @@ create.onclick = async () => {
       body: JSON.stringify({ script })
     })
 
-    newcode.textContent = `Код: ${data.code}`
+    newcode.textContent = `Code: ${data.code}`
     lua.value = ""
   } catch (e) {
     newcode.textContent = e.message
