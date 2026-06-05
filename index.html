@@ -7,31 +7,62 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <main>
-    <section class="card">
-      <h1>LuaShare</h1>
-      <p>Введите 6 значный код, чтобы получить скрипт</p>
+  <aside class="side" id="side">
+    <div class="brand">LuaShare</div>
 
-      <div class="row">
-        <input id="code" maxlength="6" inputmode="numeric" placeholder="000000">
-        <button id="get">Получить</button>
+    <button class="nav active" data-page="main">
+      <span>★</span>
+      Main
+    </button>
+
+    <button class="nav" id="adminNav" data-page="admin" hidden>
+      <span>◉</span>
+      Administration
+    </button>
+  </aside>
+
+  <main class="app">
+    <button class="hamb" id="hamb">☰</button>
+
+    <section class="page active" id="mainPage">
+      <h1>Main</h1>
+
+      <div class="codeInput" id="codeInput">
+        <input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric">
       </div>
 
-      <div id="msg"></div>
+      <button class="primary" id="get">Получить</button>
 
-      <pre id="box" hidden><code id="out"></code></pre>
-      <button id="copy" hidden>Копировать</button>
+      <div class="scriptBox" id="scriptBox">
+        <pre><code id="out">Script here</code></pre>
+      </div>
+
+      <div class="actions">
+        <button id="download">⇩</button>
+        <button id="copy">▣</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+    </section>
+
+    <section class="page" id="adminPage">
+      <h1>Administration</h1>
+
+      <textarea id="lua" placeholder="Script here"></textarea>
+
+      <div class="actions wide">
+        <button id="clear">⌫</button>
+        <button id="create">▷</button>
+      </div>
+
+      <div class="msg" id="newcode"></div>
     </section>
   </main>
-
-  <button id="menu" hidden>☰</button>
-
-  <aside id="admin" hidden>
-    <h2>Админ</h2>
-    <textarea id="lua" placeholder="Lua script"></textarea>
-    <button id="create">Создать код</button>
-    <div id="newcode"></div>
-  </aside>
 
   <script src="/app.js"></script>
 </body>
