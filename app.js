@@ -1,16 +1,24 @@
 const q = s => document.querySelector(s)
+const qa = s => [...document.querySelectorAll(s)]
 
-const code = q("#code")
+const inputs = qa(".codeInput input")
 const get = q("#get")
 const msg = q("#msg")
-const box = q("#box")
 const out = q("#out")
 const copy = q("#copy")
-const menu = q("#menu")
-const admin = q("#admin")
+const download = q("#download")
+const hamb = q("#hamb")
+const side = q("#side")
+const navs = qa(".nav")
+const mainPage = q("#mainPage")
+const adminPage = q("#adminPage")
+const adminNav = q("#adminNav")
 const lua = q("#lua")
 const create = q("#create")
+const clear = q("#clear")
 const newcode = q("#newcode")
+
+let currentScript = ""
 
 async function api(url, opt) {
   const res = await fetch(url, opt)
@@ -19,26 +27,50 @@ async function api(url, opt) {
   return data
 }
 
-function showAdmin() {
-  menu.hidden = false
+function getCode() {
+  return inputs.map(i => i.value).join("")
 }
 
-async function checkAuth() {
-  try {
-    const data = await api("/api/auth")
-    if (data.admin) showAdmin()
-  } catch {}
+function setPage(page) {
+  navs.forEach(n => n.classList.toggle("active", n.dataset.page === page))
+  mainPage.classList.toggle("active", page === "main")
+  adminPage.classList.toggle("active", page === "admin")
+  side.classList.remove("open")
 }
+
+function showAdmin() {
+  adminNav.hidden = false
+}
+
+inputs.forEach((inp, i) => {
+  inp.addEventListener("input", e => {
+    inp.value = inp.value.replace(/\D/g, "").slice(0, 1)
+    if (inp.value && inputs[i + 1]) inputs[i + 1].focus()
+  })
+
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Backspace" && !inp.value && inputs[i - 1]) inputs[i - 1].focus()
+  })
+
+  inp.addEventListener("paste", e => {
+    e.preventDefault()
+    const val = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
+    inputs.forEach((x, n) => x.value = val[n] || "")
+    if (inputs[val.length - 1]) inputs[val.length - 1].focus()
+  })
+})
+
+navs.forEach(n => n.onclick = () => setPage(n.dataset.page))
+
+hamb.onclick = () => side.classList.toggle("open")
 
 get.onclick = async () => {
-  const val = code.value.trim()
+  const val = getCode()
 
-  box.hidden = true
-  copy.hidden = true
   msg.textContent = ""
 
   if (!/^\d{6}$/.test(val)) {
-    msg.textContent = "Нужен 6 значный код"
+    msg.textContent = "Введите 6 цифр"
     return
   }
 
@@ -52,16 +84,16 @@ get.onclick = async () => {
 
       if (data.admin) {
         showAdmin()
-        msg.textContent = "Вы стали админом"
+        setPage("admin")
+        msg.textContent = "Админ доступ открыт"
       }
 
       return
     }
 
     const data = await api(`/api/script/${val}`)
+    currentScript = data.script
     out.textContent = data.script
-    box.hidden = false
-    copy.hidden = false
     msg.textContent = "Скрипт найден"
   } catch (e) {
     msg.textContent = e.message
@@ -69,12 +101,25 @@ get.onclick = async () => {
 }
 
 copy.onclick = async () => {
-  await navigator.clipboard.writeText(out.textContent)
+  if (!currentScript) return msg.textContent = "Сначала получите скрипт"
+  await navigator.clipboard.writeText(currentScript)
   msg.textContent = "Скопировано"
 }
 
-menu.onclick = () => {
-  admin.hidden = !admin.hidden
+download.onclick = () => {
+  if (!currentScript) return msg.textContent = "Сначала получите скрипт"
+
+  const blob = new Blob([currentScript], { type: "text/plain" })
+  const a = document.createElement("a")
+  a.href = URL.createObjectURL(blob)
+  a.download = "script.lua"
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+clear.onclick = () => {
+  lua.value = ""
+  newcode.textContent = ""
 }
 
 create.onclick = async () => {
@@ -97,6 +142,13 @@ create.onclick = async () => {
   } catch (e) {
     newcode.textContent = e.message
   }
+}
+
+async function checkAuth() {
+  try {
+    const data = await api("/api/auth")
+    if (data.admin) showAdmin()
+  } catch {}
 }
 
 checkAuth()
