@@ -38,7 +38,7 @@ get.onclick = async () => {
   msg.textContent = ""
 
   if (!/^\d{6}$/.test(val)) {
-    msg.textContent = "Нужен 6-значный код"
+    msg.textContent = "Нужен 6 значный код"
     return
   }
 
@@ -81,7 +81,7 @@ create.onclick = async () => {
   const script = lua.value.trim()
 
   if (!script) {
-    newcode.textContent = "Вставьте Lua-скрипт"
+    newcode.textContent = "Вставьте скрипт"
     return
   }
 
