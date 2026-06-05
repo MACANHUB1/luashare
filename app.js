@@ -1,60 +1,64 @@
 const q = s => document.querySelector(s)
-const qa = s => [...document.querySelectorAll(s)]
+const qa = s => Array.from(document.querySelectorAll(s))
 
-const menuBtn = q("#menuBtn")
-const popup = q("#popup")
-const goMain = q("#goMain")
-const goAdmin = q("#goAdmin")
-const mainPage = q("#mainPage")
-const adminPage = q("#adminPage")
+const burger = q("#burger")
+const menu = q("#menu")
+const openMain = q("#openMain")
+const openAdmin = q("#openAdmin")
+const main = q("#main")
+const admin = q("#admin")
 const inputs = qa(".codeInput input")
-const codePage = q("#codePage")
-const scriptPage = q("#scriptPage")
-const out = q("#out")
-const msg = q("#msg")
-const copy = q("#copy")
-const download = q("#download")
-const lua = q("#lua")
-const focusEdit = q("#focusEdit")
-const clear = q("#clear")
-const adminDownload = q("#adminDownload")
-const create = q("#create")
-const newcode = q("#newcode")
+const codeScreen = q("#codeScreen")
+const scriptScreen = q("#scriptScreen")
+const scriptOut = q("#scriptOut")
+const status = q("#status")
+const adminStatus = q("#adminStatus")
+const copyScript = q("#copyScript")
+const downloadScript = q("#downloadScript")
+const luaInput = q("#luaInput")
+const editLua = q("#editLua")
+const clearLua = q("#clearLua")
+const downloadLua = q("#downloadLua")
+const createScript = q("#createScript")
 
 let currentScript = ""
-let busy = false
+let locked = false
 
-async function api(url, opt) {
+async function api(url, opt = {}) {
   const res = await fetch(url, opt)
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || "Ошибка")
+  const txt = await res.text()
+  let data = {}
+
+  try {
+    data = txt ? JSON.parse(txt) : {}
+  } catch {
+    throw new Error(txt || "Ошибка API")
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || "Ошибка")
+  }
+
   return data
 }
 
-function page(name) {
-  mainPage.classList.toggle("active", name === "main")
-  adminPage.classList.toggle("active", name === "admin")
-  popup.classList.remove("open")
+function showPage(name) {
+  main.classList.toggle("show", name === "main")
+  admin.classList.toggle("show", name === "admin")
+  menu.classList.remove("open")
 }
 
 function showAdmin() {
-  goAdmin.hidden = false
+  openAdmin.hidden = false
 }
 
-function code() {
-  return inputs.map(x => x.value).join("")
+function getCode() {
+  return inputs.map(i => i.value).join("")
 }
 
-function resetCode() {
-  inputs.forEach(x => x.value = "")
+function clearCode() {
+  inputs.forEach(i => i.value = "")
   inputs[0].focus()
-}
-
-function showScript(script) {
-  currentScript = script
-  out.textContent = script
-  codePage.hidden = true
-  scriptPage.hidden = false
 }
 
 function saveFile(text, name) {
@@ -68,15 +72,22 @@ function saveFile(text, name) {
   URL.revokeObjectURL(a.href)
 }
 
-async function submitCode() {
-  if (busy) return
+function openScript(script) {
+  currentScript = script
+  scriptOut.textContent = script
+  codeScreen.hidden = true
+  scriptScreen.hidden = false
+}
 
-  const val = code()
+async function submitCode() {
+  if (locked) return
+
+  const val = getCode()
 
   if (!/^\d{6}$/.test(val)) return
 
-  busy = true
-  msg.textContent = ""
+  locked = true
+  status.textContent = ""
 
   try {
     if (val === "607125") {
@@ -88,56 +99,57 @@ async function submitCode() {
 
       if (data.admin) {
         showAdmin()
-        page("admin")
-        msg.textContent = ""
+        showPage("admin")
       }
 
-      resetCode()
+      clearCode()
       return
     }
 
     const data = await api(`/api/script/${val}`)
-    showScript(data.script)
+    openScript(data.script)
   } catch (e) {
-    msg.textContent = e.message
-    resetCode()
+    status.textContent = e.message
+    clearCode()
   } finally {
-    busy = false
+    locked = false
   }
 }
 
-menuBtn.onclick = () => popup.classList.toggle("open")
-
-goMain.onclick = () => {
-  page("main")
+burger.onclick = () => {
+  menu.classList.toggle("open")
 }
 
-goAdmin.onclick = () => {
-  page("admin")
+openMain.onclick = () => {
+  showPage("main")
+}
+
+openAdmin.onclick = () => {
+  showPage("admin")
 }
 
 document.addEventListener("click", e => {
-  if (!popup.contains(e.target) && !menuBtn.contains(e.target)) {
-    popup.classList.remove("open")
+  if (!menu.contains(e.target) && !burger.contains(e.target)) {
+    menu.classList.remove("open")
   }
 })
 
-inputs.forEach((inp, i) => {
+inputs.forEach((inp, index) => {
   inp.addEventListener("input", () => {
     inp.value = inp.value.replace(/\D/g, "").slice(0, 1)
 
-    if (inp.value && inputs[i + 1]) {
-      inputs[i + 1].focus()
+    if (inp.value && inputs[index + 1]) {
+      inputs[index + 1].focus()
     }
 
-    if (code().length === 6) {
+    if (getCode().length === 6) {
       submitCode()
     }
   })
 
   inp.addEventListener("keydown", e => {
-    if (e.key === "Backspace" && !inp.value && inputs[i - 1]) {
-      inputs[i - 1].focus()
+    if (e.key === "Backspace" && !inp.value && inputs[index - 1]) {
+      inputs[index - 1].focus()
     }
 
     if (e.key === "Enter") {
@@ -150,8 +162,8 @@ inputs.forEach((inp, i) => {
 
     const val = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
 
-    inputs.forEach((x, n) => {
-      x.value = val[n] || ""
+    inputs.forEach((x, i) => {
+      x.value = val[i] || ""
     })
 
     if (val.length === 6) {
@@ -162,55 +174,55 @@ inputs.forEach((inp, i) => {
   })
 })
 
-copy.onclick = async () => {
+copyScript.onclick = async () => {
   if (!currentScript) {
-    msg.textContent = "Скрипт не открыт"
+    status.textContent = "Скрипт не открыт"
     return
   }
 
   await navigator.clipboard.writeText(currentScript)
-  msg.textContent = "Скопировано"
+  status.textContent = "Скопировано"
 }
 
-download.onclick = () => {
+downloadScript.onclick = () => {
   if (!currentScript) {
-    msg.textContent = "Скрипт не открыт"
+    status.textContent = "Скрипт не открыт"
     return
   }
 
   saveFile(currentScript, "script.lua")
 }
 
-focusEdit.onclick = () => {
-  lua.focus()
+editLua.onclick = () => {
+  luaInput.focus()
 }
 
-clear.onclick = () => {
-  lua.value = ""
-  newcode.textContent = ""
-  lua.focus()
+clearLua.onclick = () => {
+  luaInput.value = ""
+  adminStatus.textContent = ""
+  luaInput.focus()
 }
 
-adminDownload.onclick = () => {
-  const script = lua.value.trim()
+downloadLua.onclick = () => {
+  const script = luaInput.value.trim()
 
   if (!script) {
-    newcode.textContent = "Script пустой"
+    adminStatus.textContent = "Script пустой"
     return
   }
 
   saveFile(script, "script.lua")
 }
 
-create.onclick = async () => {
-  const script = lua.value.trim()
+createScript.onclick = async () => {
+  const script = luaInput.value.trim()
 
   if (!script) {
-    newcode.textContent = "Script пустой"
+    adminStatus.textContent = "Script пустой"
     return
   }
 
-  newcode.textContent = ""
+  adminStatus.textContent = ""
 
   try {
     const data = await api("/api/scripts", {
@@ -219,18 +231,21 @@ create.onclick = async () => {
       body: JSON.stringify({ script })
     })
 
-    newcode.textContent = `Code: ${data.code}`
-    lua.value = ""
+    adminStatus.textContent = `Code: ${data.code}`
+    luaInput.value = ""
   } catch (e) {
-    newcode.textContent = e.message
+    adminStatus.textContent = e.message
   }
 }
 
-async function checkAuth() {
+async function init() {
   try {
     const data = await api("/api/auth")
-    if (data.admin) showAdmin()
+
+    if (data.admin) {
+      showAdmin()
+    }
   } catch {}
 }
 
-checkAuth()
+init()
